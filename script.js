@@ -51,7 +51,6 @@ musicBtn?.addEventListener('click', () => {
   if (bgm && bgm.paused) playBgm(); else pauseBgm();
 });
 
-// Begin playback on the visitor's first scroll or tap (not when they hit the button)
 let musicStarted = false;
 function startOnFirstInteraction(e) {
   if (musicStarted) return;
@@ -63,3 +62,42 @@ function startOnFirstInteraction(e) {
 }
 window.addEventListener('scroll', startOnFirstInteraction, { passive: true });
 window.addEventListener('pointerdown', startOnFirstInteraction);
+
+// --- Photo slideshow ---
+const slideshow = document.querySelector('.slideshow');
+if (slideshow) {
+  const slides = Array.from(slideshow.querySelectorAll('.slide'));
+  const dotsWrap = slideshow.querySelector('.dots');
+  const prevBtn = slideshow.querySelector('.slide-btn.prev');
+  const nextBtn = slideshow.querySelector('.slide-btn.next');
+  let current = 0;
+  let timer = null;
+
+  slides.forEach((_, idx) => {
+    const dot = document.createElement('button');
+    dot.className = 'dot' + (idx === 0 ? ' is-active' : '');
+    dot.setAttribute('aria-label', 'Go to photo ' + (idx + 1));
+    dot.addEventListener('click', () => { show(idx); restart(); });
+    dotsWrap.appendChild(dot);
+  });
+  const dots = Array.from(dotsWrap.querySelectorAll('.dot'));
+
+  function show(i) {
+    current = (i + slides.length) % slides.length;
+    slides.forEach((s, idx) => s.classList.toggle('is-active', idx === current));
+    dots.forEach((d, idx) => d.classList.toggle('is-active', idx === current));
+  }
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+  function start() { stop(); timer = setInterval(next, 5000); }
+  function stop() { if (timer) clearInterval(timer); }
+  function restart() { stop(); start(); }
+
+  nextBtn.addEventListener('click', () => { next(); restart(); });
+  prevBtn.addEventListener('click', () => { prev(); restart(); });
+  slideshow.addEventListener('mouseenter', stop);
+  slideshow.addEventListener('mouseleave', start);
+
+  show(0);
+  start();
+}
